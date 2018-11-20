@@ -75,11 +75,15 @@ class TwoLayerNet(object):
     # Store the result in the scores variable, which should be an array of      #
     # shape (N, C).                                                             #
     #############################################################################
-    pass
+    layer_1 = X.dot(W1) + b1[None, ]
+    layer_1[layer_1 < 0] = 0 # apply relu to the first layer
+
+    scores = layer_1.dot(W2) + b2[None, :]
+
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
-    
+
     # If the targets are not given then jump out, we're done
     if y is None:
       return scores
@@ -92,7 +96,20 @@ class TwoLayerNet(object):
     # in the variable loss, which should be a scalar. Use the Softmax           #
     # classifier loss.                                                          #
     #############################################################################
-    pass
+    scores -= np.max(scores, axis=-1)[:, None] # avoid numeric instability
+
+    term1 = -scores[np.arange(N), y]
+    scores_exp = np.exp(scores)
+    sums_j = np.sum(scores_exp, axis=-1)
+    term2 = np.log(sums_j)
+    loss = np.sum(term1 + term2)
+
+    # Right now the loss is a sum over all training examples, but we want it
+    # to be an average instead so we divide by num_train.
+    loss /= N
+
+    # Add regularization to the loss.
+    loss += reg * (np.sum(W1 * W1) + np.sum(W2 * W2))
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
